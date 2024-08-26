@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { WebSocketProvider } from 'ethers';
+import { Listener, ProviderEvent, WebSocketProvider } from 'ethers';
 import { sleep } from 'src/utils';
 import { WebSocket } from 'ws';
 
@@ -21,6 +21,8 @@ export class ResilientWebsocketProviderService {
   private provider: WebSocketProvider;
   private pingTimeout: NodeJS.Timeout;
   private keepAliveInterval: NodeJS.Timeout;
+  public subscriptions: Set<{ event: ProviderEvent; listener: Listener }> =
+    new Set();
 
   constructor(private readonly configService: ConfigService) {
     this.wsUrl = this.configService.get<string>('BSC_WS_PROVIDER_URL');
@@ -122,7 +124,19 @@ export class ResilientWebsocketProviderService {
   }
 
   async resubscribe() {
-    // TODO: Implement resubscribe logic
+    this.logger.debug('Resubscribing to topics...');
+    for (const subscription of this.subscriptions) {
+      try {
+        await this.provider.on(subscription.event, subscription.listener);
+
+        this.logger.debug(`Resubscribed to ${subscription.event.toString()}`);
+      } catch (error) {
+        console.error(
+          `Failed to resubscribe to ${subscription.event.toString()}:`,
+          error,
+        );
+      }
+    }
   }
 
   cleanupConnection() {
