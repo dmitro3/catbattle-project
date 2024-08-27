@@ -1,24 +1,25 @@
 # Cat Battle Blockchain
 
-`cat-battle-blockchain` handle payment processor on TON and notification for other payment status. `cat-battle-blockchain` stack consists of:
+`cat-battle-blockchain` handle payment processor on BSC and notification for other payment status. `cat-battle-blockchain` stack consists of:
 
 - `postgres`: PostgreSQL server to store indexed data and perform queries.
-- `indexer-worker`: TON Index worker to read and parse data via [TON API Center](https://toncenter.com/)
-- `ws`: Provide websocket server for internal service listeners.
+- `ethers-websocket`: ResilientWebsocket build on top of ethers `WebSocketProvider` to listen payment events on BSC
+- `quicknode`: Websocket node infrastructure provider
+- `socket.io`: Provide websocket server for internal service listeners.
 
 # Feature
 
-- Handle TON payment for Cat Battle Game
-- Send proceed TON payment events via websocket
-- Support withdraw and deposit TON
-- Further, Handle JETTON (CatB) & NFT (CatNFT) processing (Under development in `nft` branch)
+- Handle payment for Cat Battle Game on BSC
+- Send proceed BSC payment transaction events via websocket
+- Contract functionality management: Withdraw/Upgradable/Ownable/Pausable
+- Manage shop item on contract item, price
 
 # Technique
 
-- Nestjs: Index work and parse TON transaction and express api server
+- Nestjs: Index work and parse BSC payment transaction and express api server
 - Postgres: PostgreSQL server to store transaction data and perform queries.
 - Socket.io: Push payment transaction to game server
-- TON client: Connect to TON HTTP API endpoint to get payment transaction
+- websocket: Listen blockchain events
 
 # How to run
 
@@ -38,12 +39,10 @@ cat-battle-website/
 ├── src/
 │   ├── migrations/
 │   ├── modules/
-│   │   ├── account-subscriber/
+│   │   ├── contract-subscriber/
 │   │   ├── account-transaction/
-│   │   ├── hmac/
 │   │   ├── notification/
-│   │   ├── ton/
-│   │   └── ton-wallet/
+│   │   └── resilient-websocket-provider/
 │   ├── utils/
 │   ├── app.controller.ts
 │   ├── app.module.ts
@@ -57,13 +56,10 @@ cat-battle-website/
 
 - `src/`:` Contains the source code, including components and styles.
 - `migrations/`: Contains database TypeORM migrations scripts
-- `modules/account-subscriber`: TON payment processor
-- `modules/account-transaction`: parse and aggregate TON transaction
-- `modules/hmac`: HMAC authorize withdraw api for game server
-
+- `modules/contract-subscriber`: BSC payment processor
+- `modules/account-transaction`: parse, aggregate BSC transaction and store on off-chain database
 - `modules/notification`: Send `ws` or `webhook` for service listeners
-- `modules/ton`: TON client
-- `modules/ton-wallet`: TON wallet management (WalletV4R2, HighloadWallet) functionality
+- `modules/resilient-websocket-provider`: ResilientWebsocket build on top of ethers `WebSocketProvider` to listen payment events on BSC
 - `utils/`: Contains utility functions, classes, and other helper modules that are used throughout the project
 - `main.ts`: Entry point for the React application.
 
